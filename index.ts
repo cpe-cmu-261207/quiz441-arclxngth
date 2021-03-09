@@ -51,7 +51,7 @@ app.post('/register',
   body('password').isString(),
   body('firstname').isString(),
   body('lastname').isString(),
-  body('balance').isNumeric(),
+  body('balance').isInt(),
   (req, res) => {
 
     const { username, password, firstname, lastname, balance } = req.body
@@ -124,6 +124,12 @@ app.post('/withdraw',
 
 app.delete('/reset', (req, res) => {
 
+  const buffer = fs.readFileSync("./db.json", { encoding: "utf-8" });
+  const data = JSON.parse(buffer);
+
+  data.users = [];
+  fs.writeFileSync("./db.json", JSON.stringify(data));
+  
   //code your database reset here
   
   return res.status(200).json({
