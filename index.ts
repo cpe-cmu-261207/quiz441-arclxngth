@@ -19,17 +19,39 @@ interface JWTPayload {
 }
 
 app.post('/login',
+  body('username').isString(),
+  body('password').isString(),
   (req, res) => {
 
     const { username, password } = req.body
     // Use username and password to create token.
+    const buffer = fs.readFileSync("./db.json", { encoding: "utf-8" });
+    const data = JSON.parse(buffer);
 
-    return res.status(200).json({
-      message: 'Login succesfully',
+    const isCompleted = data.users.find((value: 
+      { username: any; password: string }) => value.username === username 
+                                              && value.password === password
+    );
+
+    if (isCompleted) {
+      const token = jwt.sign({ username: isCompleted.username },SECRET);
+      return res.status(200).json({
+        message: 'Login succesfully',
+        token,
+      })
+    }
+
+    return res.status(400).json({
+      message: "Invalid username or password"
     })
   })
 
 app.post('/register',
+  body('username').isString(),
+  body('password').isString(),
+  body('firstname').isString(),
+  body('lastname').isString(),
+  body('balance').isNumeric(),
   (req, res) => {
 
     const { username, password, firstname, lastname, balance } = req.body
