@@ -79,12 +79,33 @@ app.post('/register',
 app.get('/balance',
   (req, res) => {
     const token = req.query.token as string
+    
     try {
       const { username } = jwt.verify(token, SECRET) as JWTPayload
+
+      const buffer = fs.readFileSync("./db.json", { encoding: "utf-8" });
+      const data = JSON.parse(buffer);
+
+      let balance;
+
+      const targetUser = data.users.map((value: { username: string, balance: number }) => {
+        if(value.username === username){
+          balance = value.balance;
+          return
+        }
+      })
   
+      return res.status(200).json({
+        name: username,
+        balance: balance,
+      })
+
     }
     catch (e) {
       //response in case of invalid token
+      return res.status(401).json({
+        message: "Invalid Token"
+      })
     }
   })
 
