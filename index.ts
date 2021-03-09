@@ -23,6 +23,9 @@ app.post('/login',
   body('password').isString(),
   (req, res) => {
 
+    if (!validationResult(req).isEmpty())
+      return res.status(400).json({ message: "Invalid username or password" })
+
     const { username, password } = req.body
     // Use username and password to create token.
     const buffer = fs.readFileSync("./db.json", { encoding: "utf-8" });
@@ -53,6 +56,9 @@ app.post('/register',
   body('lastname').isString(),
   body('balance').isInt(),
   (req, res) => {
+
+    if (!validationResult(req).isEmpty())
+      return res.status(400).json({ message: "Invalid data" })
 
     const { username, password, firstname, lastname, balance } = req.body
     const newUser = { username, password, firstname, lastname, balance };
@@ -192,7 +198,7 @@ app.post('/withdraw',
       const targetUser = data.users.map((value: { username: string, balance: number }) => {
         if(value.username === username){
           balance = value.balance - amount;
-          
+
           if(balance < 0 ) return res.status(400).json({ message: "Invalid data" })
 
           value.balance = balance
