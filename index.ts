@@ -116,10 +116,105 @@ app.post('/deposit',
     //Is amount <= 0 ?
     if (!validationResult(req).isEmpty())
       return res.status(400).json({ message: "Invalid data" })
+
+    const token = req.query
+
+    if(!token){
+      return res.status(401).json({
+        message: "Invalid Token"
+      })
+    }
+
+    const token2 = token.token as string
+
+    const { amount } = req.body
+
+    try {
+      const { username } = jwt.verify(token2, SECRET) as JWTPayload
+
+      const buffer = fs.readFileSync("./db.json", { encoding: "utf-8" });
+      const data = JSON.parse(buffer);
+
+      let balance;
+
+      const targetUser = data.users.map((value: { username: string, balance: number }) => {
+        if(value.username === username){
+          balance = value.balance + amount;
+          value.balance = balance
+          return value;
+        }
+      })
+
+      fs.writeFileSync("./db.json", JSON.stringify(data));
+
+  
+      return res.status(200).json({
+        message: "Deposit Successfully",
+        balance: balance,
+      })
+
+    }
+    catch (e) {
+      //response in case of invalid token
+      return res.status(401).json({
+        message: "Invalid Token"
+      })
+    }
   })
 
 app.post('/withdraw',
+  body('amount').isInt({ min: 1 }),
   (req, res) => {
+
+    if (!validationResult(req).isEmpty())
+      return res.status(400).json({ message: "Invalid data" })
+
+    const token = req.query
+
+    if(!token){
+      return res.status(401).json({
+        message: "Invalid Token"
+      })
+    }
+
+    const token2 = token.token as string
+
+    const { amount } = req.body
+
+    try {
+      const { username } = jwt.verify(token2, SECRET) as JWTPayload
+
+      const buffer = fs.readFileSync("./db.json", { encoding: "utf-8" });
+      const data = JSON.parse(buffer);
+
+      let balance;
+
+      const targetUser = data.users.map((value: { username: string, balance: number }) => {
+        if(value.username === username){
+          balance = value.balance - amount;
+          
+          if(balance < 0 ) return res.status(400).json({ message: "Invalid data" })
+
+          value.balance = balance
+          return value;
+        }
+      })
+
+      fs.writeFileSync("./db.json", JSON.stringify(data));
+
+  
+      return res.status(200).json({
+        message: "Withdraw Successfully",
+        balance: balance,
+      })
+
+    }
+    catch (e) {
+      //response in case of invalid token
+      return res.status(401).json({
+        message: "Invalid Token"
+      })
+    }
   })
 
 app.delete('/reset', (req, res) => {
