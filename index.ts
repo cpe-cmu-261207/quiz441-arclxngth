@@ -138,7 +138,12 @@ app.delete('/reset', (req, res) => {
 })
 
 app.get('/me', (req, res) => {
-  
+  return res.status(200).json({
+    firstname: "HONG LENG",
+    lastname: "TOH",
+    code: "620610819",
+    gpa: "3.88",
+  })
 })
 
 app.get('/demo', (req, res) => {
